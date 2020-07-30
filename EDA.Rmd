@@ -1,0 +1,353 @@
+---
+output:
+  html_document: default
+  word_document: default
+---
+
+```{css, echo=FALSE}
+body{
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+```
+
+<center><h1>**<u>Exploratory Data Analysis for *SampleSuperstore*</u>**</h1></center> 
+
+```{r, echo = FALSE, message = FALSE}
+superstore <- read.csv("SampleSuperstore.csv") 
+library(tidyverse)
+library(ggplot2)
+library(gridExtra)
+```
+
+## **Let's take a look of our data set:**
+
+```{r, echo = FALSE}
+head(superstore, 5)
+```
+  
+## **The quick summary about the data set is:**
+
+```{r, echo = FALSE}
+summary(superstore)
+```
+  
+## **Check the Number of missing values in the data set**
+
+```{r, echo = FALSE}
+sum(is.na(superstore))
+```
+<font size = "4">So as we can see, there are no missing values in the data set.</font>  
+
+## **Now, we are going to understand the summary of data using different graphs.**  
+
+### **<u>The proportion of Profit and Sales in different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 10,fig.height = 5}
+x0 <- data.frame(superstore %>% group_by(Region) %>% summarise(Profit = sum(Profit)/sum(superstore$Profit)))
+g1 <- ggplot(x0, aes(Region, Profit))
+g1 <- g1 + geom_bar(stat = "identity", aes(fill = Region), width = 0.5) + labs(x = "Region") + labs(y = "Profit Proportion") + 
+  labs(title = "Proportion of Profit across different regions") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+x1 <- data.frame(superstore %>% group_by(Region) %>% summarise(Sales = sum(Sales)/sum(superstore$Sales)))
+g2 <- ggplot(x1, aes(Region, Sales))
+g2 <- g2 + geom_bar(stat = "identity", aes(fill = Region), width = 0.5) + labs(x = "Region") + labs(y = "Sales Proportion") + 
+  labs(title = "Proportion of Sales across different regions") + 
+  theme(plot.title = element_text(hjust = 0.5))
+return(grid.arrange(g1, g2, ncol = 2))
+```
+  
+### **<u>Total Sales across different Sates of different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.width = 12.5,fig.height = 10}
+x3 <- data.frame(superstore %>% group_by(Region, State) %>% summarise(Sales = sum(Sales), 
+                                                                      Profit = sum(Profit)/sum(Sales)))
+g <- ggplot(x3, aes(State, Sales))
+g <- g + geom_bar(stat = "identity", aes(fill = State)) + facet_wrap(.~Region, nrow = 2) +
+  labs(x = "State") + labs(y = "Sales") + 
+  labs(title = "Total Sales across different Sates of different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>Profit per Sale across different States of different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.width = 12.5,fig.height = 10}
+g <- ggplot(x3, aes(State, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = State)) + facet_wrap(.~Region, ncol = 2) +
+  labs(x = "State") + labs(y = "Profit per Sale") + 
+  labs(title = "Profit per Sale across different Sates of different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>Number of different Ship modes in different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 8}
+g <- ggplot(superstore, aes(Ship.Mode))
+g <- g + geom_histogram(stat = "Count", aes(fill = Ship.Mode)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Ship Mode") + 
+  labs(y = "Number of different modes") + labs(title = "Number of different ship modes in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>Sales on using different Ship modes in different regions</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+s <- data.frame(superstore %>% group_by(Region, Ship.Mode) %>% summarise(Profit = sum(Profit)/sum(Sales), Sales = sum(Sales)))
+g <- ggplot(s, aes(Ship.Mode, Sales))
+g <- g + geom_bar(stat = "identity", aes(fill = Ship.Mode)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Ship Mode") + 
+  labs(y = "Sales") + labs(title = "Sales on using different ship modes in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>How different Ship modes are affecting Profit in different regions of the country? </u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+g <- ggplot(s, aes(Ship.Mode, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = Ship.Mode)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Ship Mode") + 
+  labs(y = "Profit per sale") + labs(title = "Profit per sale on using different ship modes in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+<font size = "4">It can be optically discerned from the above graph that, *Same day* Ship mode is not a good option for the South region. To truncate loss and increment profit in the South region, other modes should be habituated as shipping modes like *First Class*, *Second Class*, and *Standard Class*.
+On the other hand, in the East and West regions *same day* ship mode is preferable. Withal, Profit may be incremented in the Central region if we utilize *same day* Ship mode, as in the East and West regions.</font>  
+  
+### **<u>Number of different Customer segments in different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 8}
+g <- ggplot(superstore, aes(Segment))
+g <- g + geom_histogram(stat = "Count", aes(fill = Segment)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Segment") + 
+  labs(y = "Number of different Customer segments") + 
+  labs(title = "Number of different customer segments in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>Sales in different segments in different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+s <- data.frame(superstore %>% group_by(Region, Segment) %>% summarise(Profit = sum(Profit)/sum(Sales), Sales = sum(Sales)))
+g <- ggplot(s, aes(Segment, Sales))
+g <- g + geom_bar(stat = "identity", aes(fill = Segment)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Segment") + 
+  labs(y = "Sales") + labs(title = "Sales in different segments in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+### **<u>What is the Profit per Sale in different segments in different regions of the country?</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+g <- ggplot(s, aes(Segment, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = Segment)) + facet_wrap(.~Region, ncol = 2) + labs(x = "Segment") + 
+  labs(y = "Profit per sale") + labs(title = "Profit in different segments in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+  
+<font size = "4">In the Central region, *Consumer* segment profit is very low. Increment the profit in this segment to increment the overall profit in the business. On the other hand, in the South region, the *Home office* segment should be ameliorated for more profit.</font>  
+  
+### **<u>Sales of different categories with different Subcategory shares in different regions of the country</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+s <- data.frame(superstore %>% group_by(Region, Category, Sub.Category) %>% summarise(Profit = sum(Profit)/sum(Sales), Sales = sum(Sales)))
+mycolors <- colorRampPalette(RColorBrewer::brewer.pal(12, "Paired"))(17)
+g <- ggplot(s, aes(Category, Sales))
+g <- g + geom_bar(stat = "identity", aes(fill = Sub.Category)) + 
+  facet_wrap(.~Region, ncol = 2) + scale_fill_manual(values = mycolors) +
+  labs(x = "Category") + labs(y = "Sales") + 
+  labs(title = "Sales of different categories with different Subcategory shares in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+  
+### **<u>Describe the Profit per sale on different Categories with different Subcategory shares in different regions of the country?</u>**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 9}
+g <- ggplot(s, aes(Category, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = Sub.Category)) + facet_wrap(.~Region, ncol = 2) + 
+  scale_fill_manual(values = mycolors) +
+  labs(x = "Category") + labs(y = "Profit per sale") + 
+  labs(title = "Profit per sale on different Categories with different Subcategory shares in different regions") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+  
+<font size = "4">It is to be noted from the above graph that in the Central region, *Furniture* category products are in astronomically immense loss, more accurately in its *Furnishings* products. So the attention should be made towards these products in the Central region to minimize loss and making a good profit. Withal, there are few products in *Office Supplies* and *Technology* which are in loss.
+In the East region withal, *Furniture* category products are in loss, in which *Tables* are playing a major role. It additionally has a loss in *Office Supply* category products. so there is a desideratum to look into these categories to truncate loss and making a profit.
+In the other two regions, there is not as much loss as are in the Central and East regions, but still there is a loss in *Furniture* in the South and West regions.</font>  
+  
+## **<u>Understanding each Region for the loss in their respective States. Additionally, ascertaining ways to increment profit and truncate loss.</u>**  
+## **<u>Analysing the Central region</u>**  
+
+### **Giving higher discount for more Sales and Profit? Let's visually perceive how higher discount rates are impacting Profit per sale in the States of Central Region. Additionally which are the States suffering more preponderant loss?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+x4 <- superstore[superstore$Region == "Central", ]
+s <- data.frame(x4 %>% group_by(State) %>% summarise(Profit = sum(Profit)/(sum(Sales)), Discount = mean(Discount)))
+g <- ggplot(s, aes(Profit, Discount))
+g <- g + geom_point(aes(color = State), size = 4) + labs(x = "Profit per Sale") + 
+  labs(y = "Average Discount") + 
+  labs(title = "Average discount and Profit per Sale in the States of Central Region") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">As we can optically discern from the above graph that verbalizes, *Texas* and *Illinois*, which are giving higher loss, are availing higher average discount rates of around 30% - 40%. But in the other states, albeit receiving negligible or no discounts are giving a good profit. These higher discount rates are the major factor for the loss in these states. So to increment Profit in the Central region discount rates must be decremented, especially in *Texas* and *Illinois*.</font>  
+
+### **Now, ascertain the categories of different Sales in States of Texas and Illinois on which discount rates are high?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+s <- data.frame(x4 %>% group_by(State, Category) %>% summarise(Discount = mean(Discount), Profit = sum(Profit)/sum(Sales)))
+s <- s[s$State %in% c("Texas", "Illinois"), ]
+g <- ggplot(s, aes(Discount, Profit))
+g <- g + geom_point(stat = "identity", size = 4, aes(color = Category)) + 
+  facet_wrap(.~State, ncol = 2) + labs(x = "Average Discount") + labs(y = "Profit per Sale") + 
+  labs(title = "Average discount and Profit per Sale on different Categories in the states of Texas and Illinois") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">As it can be optically discerned that in both the states, Texas and Illinois, discount rates are high only in the sales of categories *Office Supply* and *Furniture*. To decrement the rates for these categories will minimize loss in these states and increment profit.</font>  
+  
+### **Which Ship modes are better in different States of the Central region for minimizing loss and incrementing profit?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 10, fig.width = 10}
+s <- data.frame(x4 %>% group_by(State, Ship.Mode) %>% summarise(Profit = sum(Profit)/sum(Sales)))
+g <- ggplot(s, aes(Ship.Mode, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = Ship.Mode)) + 
+  facet_wrap(.~State, ncol = 3) + labs(x = "Ship Mode") + labs(y = "Profit per Sale") + 
+  labs(title = "Profit per Sale with different Ship modes across the different states of central region") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+
+<font size = "4">The above graph shows that utilizing *Same day* Ship mode contributes more towards the profit in that state, except states like *Illinois*, *Texas*, *South Dakota*, *North Dakota*, and *Nebraska*. To increment the utilization of *Same day* Ship Mode can make good profit from those states. 
+In *Nebraska*, there is a good sign for the utilization of *Same day* ship mode with the incremented utilization of *Second class* and *First class* Ship modes. 
+In *North Dakota* and *South Dakota* there is no utilization of *Same day* Ship mode, so an incrementation in *Second class* and *Standard Class* mode will increment the profit. 
+Withal, in *Texas* and *Illinois*, there is no profit, as the major factor for their loss is *Average discount* in these states. Withal in Illinois, there is less loss for the *Same day* mode, so increase the utilization of *Same day* mode in Illinois and decrement the *First class* and *Standard class* mode will minimize the loss.</font>  
+  
+## **<u>Analysing the South region</u>**  
+
+### **In the South region, how the discount rates are affecting the profit?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+x5 <- superstore[superstore$Region == "South", ]
+s <- data.frame(x5 %>% group_by(State) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+g <- ggplot(s, aes(Profit, Discount))
+g <- g + geom_point(aes(color = State), size = 4) + labs(x = "Profit per Sale") + 
+  labs(y = "Average Discount") + 
+  labs(title = "Average discount and Profit per Sale in the States of South Region") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">From the above graph it is pellucid that the higher discount rates in the states of *Florida*, *North Carolina*, and *Tennessee* are the reason for the loss in these states. The discount rates in these states are around 30%, whereas in other states albeit discount rates are either zero or negligible, are making a good profit. Consequently truncating discount rates in three states will minimize loss and can increment profit.</font>  
+
+### **Discounts in which Subcategories are responsible for more preponderant loss in the States of Florida, North Carolina, and Tennessee?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+s <- data.frame(x5 %>% group_by(State, Category, Sub.Category) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+s <- s[s$State %in% c("Florida", "North Carolina", "Tennessee"), ]
+g <- ggplot(s, aes(Discount, Profit))
+g <- g + geom_point(stat = "identity", size = 4, aes(color = Sub.Category)) + 
+  facet_wrap(.~State, ncol = 3) + labs(x = "Average Discount") + labs(y = "Profit per Sale") + 
+  labs(title = "Average discount and Profit per Sale on different Sub Categories in Florida, North Carolina and Tennessee") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">It is to be descried from the above graph that the highest discount rates, around 70%, in each of the three states are given on *Binders* which are making a sizably voluminous loss. After that loss of *Tables* is high in all these states, which is getting more discount. So to abbreviate loss and increment profit in these states, discount rates should be decremented.
+Additionally in *North Carolina* and *Tennessee*, discount rates on *Machines* should be minimized to increment profit in these states as discount rates are higher in those states.</font>  
+
+### **Impact of different Ship modes on Profit in the states of the South region?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 10, fig.width = 10}
+s <- data.frame(x5 %>% group_by(State, Ship.Mode) %>% summarise(Profit = sum(Profit)/sum(Sales)))
+g <- ggplot(s, aes(Ship.Mode, Profit))
+g <- g + geom_bar(stat = "identity", aes(fill = Ship.Mode)) + 
+  facet_wrap(.~State, ncol = 3) + labs(x = "Ship Mode") + labs(y = "Profit per Sale") + 
+  labs(title = "Profit per Sale with different Ship modes across the different states of South region") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(g)
+```
+
+<font size = "4">Above graph shows that in Florida *Standard class* Ship mode is the only major reason for the loss in that country, all the other three modes are making a good profit. To increment profit in Florida ship modes other than Standard class should be utilized, especially the utilization of *Same day* Ship mode. 
+Withal in North Carolina *Fist class* mode should be in predilection for use to make a profit, and the *Same day* mode should be less considered as Ship mode for the products. 
+In Tennessee, none of the modes are giving profit, as the major reason for the loss in this state is the *Average discount* rate given on products. All the other states are doing well with different Ship modes.</font>  
+
+## **<u>Analysing the East region</u>**  
+
+### **Which of the East region states are in loss because of the average discount rate in that state?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+x6 <- superstore[superstore$Region == "East", ]
+s <- data.frame(x6 %>% group_by(State) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+g <- ggplot(s, aes(Profit, Discount))
+g <- g + geom_point(aes(color = State), size = 4) + labs(x = "Profit per Sale") + 
+  labs(y = "Average Discount") + 
+  labs(title = "Average discount and Profit per Sale in the States of East Region") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">From the above graph, it shows that only two states are in loss because of average discount rates in those states, *Pennsylvania* and *Ohio*. The discount rate is around 40% in these states, which is higher from the other states.</font>  
+
+### **Deduce the Subcategories of products in states of Pennsylvania and Ohio which are giving loss in those states?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+s <- data.frame(x6 %>% group_by(State, Category, Sub.Category) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+s <- s[s$State %in% c("Pennsylvania", "Ohio"), ]
+g <- ggplot(s, aes(Discount, Profit))
+g <- g + geom_point(stat = "identity", size = 4, aes(color = Sub.Category)) + 
+  facet_wrap(.~State, ncol = 2) + labs(x = "Average Discount") + labs(y = "Profit per Sale") + 
+  labs(title = "Average discount and Profit per Sale on different Sub Categories in Pennsylvania and Ohio") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">It is to be noted from the above graph that in both of the states loss and discount rates on *Machines*, *Binders* and *Bookcases* are maximum. So to increment profit we have to decrement discount rates on these Subcategories. Additionally, there is no profit on *Tables*, *Phone*, *Chairs*, *Storage* and *Supplies* in both states.</font>  
+
+## **<u>Analysing West region</u>**  
+
+### **How the average discount in the West region is affecting profit?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+x7 <- superstore[superstore$Region == "West", ]
+s <- data.frame(x7 %>% group_by(State) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+g <- ggplot(s, aes(Profit, Discount))
+g <- g + geom_point(aes(color = State), size = 4) + labs(x = "Profit per Sale") + 
+  labs(y = "Average Discount") + 
+  labs(title = "Average discount and Profit per Sale in the States of West Region") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">Only three of the States of the west region namely, *Colorado*, *Arizona*, and *Oregon* are in loss due to high discount rates. To decrement the discount rates in these states to increment profit.</font>  
+
+### **What are the categories in which loss is high in Colorado, Arizona, and Oregon?**
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 10}
+s <- data.frame(x7 %>% group_by(State, Category) %>% summarise(Profit = sum(Profit)/sum(Sales), Discount = mean(Discount)))
+s <- s[s$State %in% c("Colorado", "Arizona", "Oregon"), ]
+g <- ggplot(s, aes(Discount, Profit))
+g <- g + geom_point(stat = "identity", size = 4, aes(color = Category)) + 
+  facet_wrap(.~State, ncol = 3) + labs(x = "Average Discount") + labs(y = "Profit per Sale") + 
+  labs(title = "Average discount and Profit per Sale on different Categories in Colorado, Arizona and Oregon") + 
+  theme(plot.title = element_text(hjust = 0.5))
+print(g)
+```
+
+<font size = "4">It can be visually perceived that in *Colorado* major part of the loss is in *Furniture* and *Technology*, so decrease the discount rates for these categories to increment profit. In *Arizona*, *Office Supply* and *Furniture* are the major categories for loss. 
+Additionally, in *Oregon*, fewer discounts should be given for *Furniture* category products to abbreviate loss.</font>  
+
+## **<u>Important Remarks:</u>**  
+
+<font size = "4">1. In *Central region*, *Consumer* Segment should be ameliorated for making a good profit. The *Furniture* category goods are responsible for loss in this region. As we have visually perceived that in two states, *Texas* and *Illinois*, are the sizably voluminous major reason for the loss in this region, where the major cause for loss on *Furniture* and *Technology* category goods are due to higher discount rates for these products. So to truncate loss and increment profit in the Central region, the discount rates for these categories should be decremented. Withal, *Same day* Ship mode is making a good portion of profit in this region, so increase the utilization of this model over others to make a good profit.</font>  
+<font size = "4">2. In *South region*, *Home office* Segment should be ameliorated as it has less profit as compared to two other segments. Withal, the utilization of *Same day* Ship mode should be minimized as it is the only mode for the loss in this region and other modes should be prioritized for shipping the goods. Moreover, as we have optically discerned that within this region *North Carolina* is the only state in a loss for *Same day* Ship mode. In other states, which are in a loss like *Florida* and *Tennesse* the utilization of *Standard class* Ship mode can abbreviate loss and increment profit. Albeit in *Tennesse* the picture is different because here the major cause for the astronomically immense loss is the average discount given on the products like *Binders*, around 70%, and *Machines* around 50%. These rates are additionally high in *Florida* and *North Carolina*, due to which loss is higher in the states. So, revise the discount rates in these states for a good profit.</font>  
+<font size = "4">3. In *East region*, only two states, *Ohio* and *Pennsylvania* are in loss because of exceptionally higher discount rates on some products like *Machines*, *Binders*, and *Bookcases*. Supplementally, there is no profit on *Tables*, *Phones*, *Chairs*, *Storage*, and *Supplies* in both states. So revise these rates for the products to increment profit in this region. Withal, *Same day* Ship mode should be incremented because it has a more immensely colossal share in profit for this region. Sales should supplementally be amended because most of the states are not having a single sale. This will possibly increase the profit.</font>  
+<font size = "4">4. In *West region*, only three states namely, *Arizona*, *Colorado*, and *Oregon* are in loss. The main reason for the loss in these states is withal because of higher discount rates for different goods. In *Colorado*, a major part of the loss is due to the higher discount rates on *Furniture* and *Technology* goods, so decrease the discount rates for these categories to increment the profit and abbreviate loss. In *Arizona*, discount rates for *Office Supply* and *Furniture* category goods should be revised. Additionally in *Oregon*, discount rates on the *Furniture* category goods should cut down for making more profit. Additionally as we have optically discerned in *East region* that the major quota of profit is because of utilizing *Same day* Ship mode, but the sales are low for this model. So to increment profit in *West region*, the *Same day* mode should be preferred.</font>   
